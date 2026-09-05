@@ -35,7 +35,7 @@ def init_env():
         folder.mkdir(parents=True, exist_ok=True)
         typer.echo(f"  Created directory: {folder.relative_to(ROOT_DIR)}")
         
-    typer.echo("✅ Environment successfully initialized.")
+    typer.echo("Environment successfully initialized.")
 
 @app.command()
 def process_library():
@@ -43,18 +43,18 @@ def process_library():
     Scans the research library. Performs Acrobat-style OCR text extraction
     on English/Japanese (JP) engineering data and blueprints.
     """
-    typer.echo("🔍 Initializing OCR Engine (jpn+eng)...")
+    typer.echo("Initializing OCR Engine (jpn+eng)...")
     
     # Missing library guardrails for your local deployment
     try:
         import pytesseract
         from pdf2image import convert_from_path
     except ImportError:
-        typer.echo("❌ Dependency Error: Please run 'pip install pytesseract pdf2image pillow' first.")
+        typer.echo("Dependency Error: Please run 'pip install pytesseract pdf2image pillow' first.")
         raise typer.Exit()
 
     if not any(LIBRARY_DIR.iterdir()):
-        typer.echo(f"⚠️ Library folder is empty. Place files in {LIBRARY_DIR.relative_to(ROOT_DIR)} to begin parsing.")
+        typer.echo(f"Library folder is empty. Place files in {LIBRARY_DIR.relative_to(ROOT_DIR)} to begin parsing.")
         return
 
     for path in LIBRARY_DIR.glob("**/*"):
@@ -67,7 +67,7 @@ def process_library():
             #    pytesseract.image_to_string(img, lang='jpn+eng')
             # 3. Cache extracted text data to a local working matrix for the AI engine.
             
-    typer.echo("🎉 Library ingestion complete.")
+    typer.echo("Library ingestion complete.")
 
 @app.command()
 def analyze_intel(topic: str):
@@ -75,12 +75,12 @@ def analyze_intel(topic: str):
     Gathers news exclusively from site:mil, site:gov, site:edu, and international gov nodes,
     then leverages the engineering files to compile solutions.
     """
-    typer.echo(f"🌐 Running automated open-source discovery for: '{topic}'")
+    typer.echo(f"Running automated open-source discovery for: '{topic}'")
     
     # Strict Query formatting as per requirements
     vetted_domains = "(site:gov OR site:mil OR site:edu)"
     search_query = f'"{topic}" {vetted_domains}'
-    typer.echo(f"🔒 Search Engine restricted to query string: {search_query}")
+    typer.echo(f"Search Engine restricted to query string: {search_query}")
     
     # Intelligence Solution Process flow:
     # 1. Fetch search results via web extraction.
@@ -96,8 +96,8 @@ def analyze_intel(topic: str):
     md_content = f"# Think Tank Report: Engineering Solution for {topic}\n\n## Sources\n- Vetted Government Intelligence Networks\n"
     md_path.write_text(md_content)
     
-    typer.echo(f"💾 Saved markdown report to: {md_path.relative_to(ROOT_DIR)}")
-    typer.echo(f"📄 Compiled finished PDF with sourced imagery to: {pdf_path.relative_to(ROOT_DIR)}")
+    typer.echo(f"Saved markdown report to: {md_path.relative_to(ROOT_DIR)}")
+    typer.echo(f"Compiled finished PDF with sourced imagery to: {pdf_path.relative_to(ROOT_DIR)}")
 
 @app.command()
 def harvest_defense_leads():
@@ -105,7 +105,7 @@ def harvest_defense_leads():
     Targets operational vulnerabilities and public health crises from official registries
     to optimize solutions hosted at https://gundam.solutions
     """
-    typer.echo("📡 Scanning government registries for operational target liabilities...")
+    typer.echo("Scanning government registries for operational target liabilities...")
     
     # Specific search parameters matching your visual feed criteria
     targets = [
@@ -115,10 +115,10 @@ def harvest_defense_leads():
     ]
     
     for query in targets:
-        typer.echo(f"🔄 Processing Intelligence Node: {query}")
+        typer.echo(f"Processing Intelligence Node: {query}")
         # Ingest raw text -> Cross-reference with internal engineering manuals -> Write output
         
-    typer.echo("📑 Analysis complete. Reports populated in docs/reports/ for review.")
+    typer.echo("Analysis complete. Reports populated in docs/reports/ for review.")
 
 @app.command()
 def analyze_intel(topic: str):
@@ -141,7 +141,7 @@ def build_joomla_payload():
     Joomla 6 Classifier Engine. Processes finished reports into valid HTML inside docs/reports/API
     for easy migration into Joomla 6 content databases.
     """
-    typer.echo("📦 Packaging outputs for Joomla 6 Web Services API...")
+    typer.echo("Packaging outputs for Joomla 6 Web Services API...")
     
     # Joomla 6 Categorizer Logic:
     # 1. Parse markdown files from docs/reports
@@ -159,7 +159,25 @@ def build_joomla_payload():
     "language": "*"
 }"""
     sample_payload_path.write_text(sample_json)
-    typer.echo(f"📁 Exported Joomla payload scheme safely at: {sample_payload_path.relative_to(ROOT_DIR)}")
+    typer.echo(f"Exported Joomla payload scheme safely at: {sample_payload_path.relative_to(ROOT_DIR)}")
+
+@app.command()
+def sync_to_site(
+    domain: str = typer.Option("https://gundam.solutions", help="Target site address"),
+    token: str = typer.Option(None, envvar="JOOMLA_API_TOKEN", help="Secret User API Token Key")
+):
+    """
+    Reads the docs/reports/API storage matrix and deploys articles live to Joomla 6.
+    """
+    if not token:
+        typer.echo("System Failure: JOOMLA_API_TOKEN environment variable or parameter is missing.")
+        raise typer.Exit(code=1)
+        
+    typer.echo(f"Initiating secure handshake protocol with {domain}...")
+    from joomla_publisher import JoomlaPublisher
+    
+    publisher = JoomlaPublisher(base_url=domain, api_token=token)
+    publisher.publish_pending_reports()
 
 if __name__ == "__main__":
     app()
